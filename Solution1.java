@@ -42,10 +42,16 @@ public class Solution1 {
 
             while (!queue.isEmpty()) {
                 String id = queue.poll();
+                // if graph already has id as a key,
+                // it means we've already requested its children from the server.
                 if (graph.containsKey(id)) continue;
                 allIDs.add(id);
                 graph.put(id, new HashSet<>());
             }
+
+            // we have already requested the children of all the node.
+            if (allIDs.isEmpty()) break;
+
             // doing a batch call with multiple node IDs. saves the number of HTTP calls
             JSONArray response = getResponse(String.join(",", allIDs));
 
@@ -64,6 +70,7 @@ public class Solution1 {
         Map<String, Integer> counts = new HashMap<>();
         int maxf = 0;
         String mostCommonNode = null;
+        
         for (Set<String> children : graph.values()) {
             for (String child : children) {
                 int count = counts.getOrDefault(child, 0) + 1;
