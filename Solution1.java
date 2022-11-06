@@ -52,7 +52,10 @@ public class Solution1 {
             // we have already requested the children of all the node.
             if (allIDs.isEmpty()) break;
 
-            // doing a batch call with multiple node IDs. saves the number of HTTP calls
+            // doing a batch call with multiple node IDs. saves the number of HTTP calls.
+            // it would also make sense to limit allIDs to a certain length,
+            // because the graph could be huge and, we might get a large response
+            // that we do not have enough bandwidth or memory to handle...
             JSONArray response = getResponse(String.join(",", allIDs));
 
             for (int i = 0; i < response.length(); i++) {
@@ -70,7 +73,7 @@ public class Solution1 {
         Map<String, Integer> counts = new HashMap<>();
         int maxf = 0;
         String mostCommonNode = null;
-        
+
         for (Set<String> children : graph.values()) {
             for (String child : children) {
                 int count = counts.getOrDefault(child, 0) + 1;
