@@ -11,11 +11,11 @@ import java.net.URL;
 import java.util.*;
 
 public class Solution1 {
-    private static final String path = "https://nodes-on-nodes-challenge.herokuapp.com/nodes/";
+    private static final String PATH = "https://nodes-on-nodes-challenge.herokuapp.com/nodes/";
     private final Map<String, Set<String>> graph = new HashMap<>();
     private final Queue<String> queue = new LinkedList<>();
     private String getNodePath(String nodeID) {
-        return path + nodeID;
+        return PATH + nodeID;
     }
 
     // making HTTP get call, possibly with multiply node ids.
