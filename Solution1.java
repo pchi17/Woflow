@@ -78,5 +78,11 @@ public class Solution1 {
         String head = "089ef556-dfff-4ff2-9733-654645be56fe";
         Solution1 solution = new Solution1();
         solution.doBFS(head);
+
+        // I get the following when running this code.
+        // total uniques node = 30
+        // The most common node is a06c90bf-e635-4812-992e-f7b1e2408a3f
+        // The frequency of it is 3
+        // I assume most common means the node with most incoming edges.
     }
 }
