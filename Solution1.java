@@ -12,8 +12,10 @@ import java.util.*;
 
 public class Solution1 {
     private static final String PATH = "https://nodes-on-nodes-challenge.herokuapp.com/nodes/";
-    private final Map<String, Set<String>> graph = new HashMap<>();
+    private final Set<String> visitedNodes = new HashSet<>();
     private final Queue<String> queue = new LinkedList<>();
+    private final Map<String, Integer> incomingEdgesCount = new HashMap<>();
+
     private String getNodePath(String nodeID) {
         return PATH + nodeID;
     }
@@ -35,6 +37,9 @@ public class Solution1 {
     }
 
     private void doBFS(String headNodeID) throws IOException {
+        int maxf = 0;
+        String mostCommonNode = null;
+
         queue.add(headNodeID);
 
         while (!queue.isEmpty()) {
@@ -42,11 +47,11 @@ public class Solution1 {
 
             while (!queue.isEmpty()) {
                 String id = queue.poll();
-                // if graph already has id as a key,
+                // if visitedNodes already has id as a key,
                 // it means we've already requested its children from the server.
-                if (graph.containsKey(id)) continue;
+                if (visitedNodes.contains(id)) continue;
                 allIDs.add(id);
-                graph.put(id, new HashSet<>());
+                visitedNodes.add(id);
             }
 
             // we have already requested the children of all the node.
@@ -64,28 +69,18 @@ public class Solution1 {
                 JSONArray children = jsonObj.getJSONArray("child_node_ids");
                 for (int j = 0; j < children.length(); j++) {
                     String child = children.getString(j);
-                    graph.get(id).add(child);
+                    int count = incomingEdgesCount.getOrDefault(child, 0) + 1;
+                    incomingEdgesCount.put(child, count);
+                    if (count > maxf) {
+                        maxf = count;
+                        mostCommonNode = child;
+                    }
                     queue.add(child);
                 }
             }
         }
 
-        Map<String, Integer> counts = new HashMap<>();
-        int maxf = 0;
-        String mostCommonNode = null;
-
-        for (Set<String> children : graph.values()) {
-            for (String child : children) {
-                int count = counts.getOrDefault(child, 0) + 1;
-                counts.put(child, count);
-                if (count > maxf) {
-                    maxf = count;
-                    mostCommonNode = child;
-                }
-            }
-        }
-
-        System.out.println("total unique nodes = " + graph.size());
+        System.out.println("total unique nodes = " + visitedNodes.size());
         System.out.println("The most common node is " + mostCommonNode);
         System.out.println("The frequency of it is " + maxf);
         System.out.println("I assume most common means the node with most incoming edges.");
