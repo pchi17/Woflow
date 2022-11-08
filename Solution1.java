@@ -12,17 +12,10 @@ import java.util.*;
 
 public class Solution1 {
     private static final String PATH = "https://nodes-on-nodes-challenge.herokuapp.com/nodes/";
-    private final Set<String> visitedNodes = new HashSet<>();
-    private final Queue<String> queue = new LinkedList<>();
-    private final Map<String, Integer> incomingEdgesCount = new HashMap<>();
-
-    private String getNodePath(String nodeID) {
-        return PATH + nodeID;
-    }
 
     // making HTTP get call, possibly with multiply node ids.
-    private JSONArray getResponse(String nodeID) throws IOException {
-        URL url = new URL(getNodePath(nodeID));
+    private JSONArray getResponse(String nodeIDs) throws IOException {
+        URL url = new URL(PATH + nodeIDs);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -37,35 +30,27 @@ public class Solution1 {
     }
 
     private void doBFS(String headNodeID) throws IOException {
-        int maxf = 0;
         String mostCommonNode = null;
+        int maxf = 0;
+        Queue<String> queue = new LinkedList<>();
+        Set<String> visitedNodes = new HashSet<>();
+        Map<String, Integer> incomingEdgesCount = new HashMap<>();
 
         queue.add(headNodeID);
+        visitedNodes.add(headNodeID);
 
         while (!queue.isEmpty()) {
-            List<String> allIDs = new ArrayList<>();
-
-            while (!queue.isEmpty()) {
-                String id = queue.poll();
-                // if visitedNodes already has id as a key,
-                // it means we've already requested its children from the server.
-                if (visitedNodes.contains(id)) continue;
-                allIDs.add(id);
-                visitedNodes.add(id);
-            }
-
-            // we have already requested the children of all the node.
-            if (allIDs.isEmpty()) break;
-
-            // doing a batch call with multiple node IDs. saves the number of HTTP calls.
-            // it would also make sense to limit allIDs to a certain length,
+            // doing a batch fetch with multiple node IDs. saves the number of HTTP calls.
+            // it would also make sense to limit node ids to a certain number,
             // because the graph could be huge and, we might get a large response
             // that we do not have enough bandwidth or memory to handle...
-            JSONArray response = getResponse(String.join(",", allIDs));
+            JSONArray response = getResponse(String.join(",", queue));
+
+            // clears the queue, child nodes will be added to the queue for the next fetch.
+            queue.clear();
 
             for (int i = 0; i < response.length(); i++) {
                 JSONObject jsonObj = response.getJSONObject(i);
-                String id = jsonObj.getString("id");
                 JSONArray children = jsonObj.getJSONArray("child_node_ids");
                 for (int j = 0; j < children.length(); j++) {
                     String child = children.getString(j);
@@ -75,7 +60,11 @@ public class Solution1 {
                         maxf = count;
                         mostCommonNode = child;
                     }
+                    // if visitedNodes already contains child as a key,
+                    // it means we've already performed a fetch with it. Do not add it to queue.
+                    if (visitedNodes.contains(child)) continue;
                     queue.add(child);
+                    visitedNodes.add(child);
                 }
             }
         }
